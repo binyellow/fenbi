@@ -12,6 +12,7 @@ logs/
 *.js
 .eslintcache
 *.pdf
+*.local.ts
 
 app/**/*.js
 test/**/*.js
