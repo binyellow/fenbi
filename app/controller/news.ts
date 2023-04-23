@@ -15,6 +15,7 @@ export default class NewsController extends Controller {
       },
     ]);
     ctx.logger.info(exercises);
+    // return exercises;
     ctx.body = exercises;
   }
 
