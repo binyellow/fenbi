@@ -11,6 +11,7 @@ logs/
 *.lock
 *.js
 .eslintcache
+*.pdf
 
 app/**/*.js
 test/**/*.js
