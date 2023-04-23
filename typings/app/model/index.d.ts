@@ -4,9 +4,11 @@
 
 import 'egg';
 import ExportExercises from '../../../app/model/exercises';
+import ExportSubject from '../../../app/model/subject';
 
 declare module 'egg' {
   interface IModel {
     Exercises: ReturnType<typeof ExportExercises>;
+    Subject: ReturnType<typeof ExportSubject>;
   }
 }

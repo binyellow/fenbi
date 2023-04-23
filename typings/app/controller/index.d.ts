@@ -3,10 +3,12 @@
 /* eslint-disable */
 
 import 'egg';
+import ExportCrawler from '../../../app/controller/crawler';
 import ExportNews from '../../../app/controller/news';
 
 declare module 'egg' {
   interface IController {
+    crawler: ExportCrawler;
     news: ExportNews;
   }
 }

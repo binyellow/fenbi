@@ -4,37 +4,18 @@ export default class NewsController extends Controller {
   public async list() {
     const { ctx } = this;
 
-    ctx.model.Exercises.aggregate([
-      {
-        $lookup: {
-          from: "Subject",
-          localField: "subjects",
-          foreignField: "id",
-          as: "subjectsArr",
-        },
-      },
-    ]);
     const exercises = await ctx.model.Exercises.aggregate([
       {
         $lookup: {
-          from: "subject", // from table
-          localField: "subjects", // localField
-          foreignField: "_id",
+          from: "subjects", // from table
+          localField: "questionIds", // localField
+          foreignField: "id",
           as: "subjectsArr",
         },
       },
     ]);
     ctx.logger.info(exercises);
     ctx.body = exercises;
-
-    // const pageSize = app.config.news.pageSize;
-    // const page = parseInt(ctx.query.page, 10) || 1;
-
-    // const idList = await ctx.service.news.getTopStories(page);
-
-    // // get itemInfo parallel
-    // const newsList = await Promise.all(idList.map((id) => ctx.service.news.getItem(id)));
-    // await ctx.render("news/list.tpl", { list: newsList, page, pageSize });
   }
 
   public async detail() {

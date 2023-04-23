@@ -3,13 +3,10 @@ module.exports = (app) => {
   const Schema = mongoose.Schema;
 
   const SubjectSchema = new Schema({
-    _id: {
-      $oid: {
-        type: "ObjectId",
-      },
-    },
     id: {
       type: "Number",
+      unique: true,
+      required: true,
     },
     content: {
       type: "String",
@@ -24,9 +21,7 @@ module.exports = (app) => {
       type: "Number",
     },
     createdTime: {
-      $numberLong: {
-        type: "String",
-      },
+      type: "Number",
     },
     shortSource: {
       type: "Mixed",

@@ -3,11 +3,6 @@ module.exports = (app) => {
   const Schema = mongoose.Schema;
 
   const ExercisesSchema = new Schema({
-    _id: {
-      $oid: {
-        type: "ObjectId",
-      },
-    },
     id: {
       type: "Number",
     },
@@ -33,7 +28,7 @@ module.exports = (app) => {
       type: ["Mixed"],
     },
     questionIds: {
-      type: "Array",
+      type: ["Number"],
     },
     requestType: {
       type: "Number",
@@ -52,10 +47,7 @@ module.exports = (app) => {
         type: "Date",
       },
     },
-    subjects: {
-      type: [mongoose.Types.ObjectId],
-    },
   });
 
-  return mongoose.model("Exercises", ExercisesSchema);
+  return mongoose.model("exercises", ExercisesSchema);
 };
