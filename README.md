@@ -1,33 +1,5 @@
-# hackernews-async-ts
+## 问题
 
-[Hacker News](https://news.ycombinator.com/) showcase using typescript && egg
-
-## QuickStart
-
-### Development
-
-```bash
-$ npm i
-$ npm run dev
-$ open http://localhost:7001/
-```
-
-Don't tsc compile at development mode, if you had run `tsc` then you need to `npm run clean` before `npm run dev`.
-
-### Deploy
-
-```bash
-$ npm run tsc
-$ npm start
-```
-
-### Npm Scripts
-
-- Use `npm run lint` to check code style
-- Use `npm test` to run unit test
-- se `npm run clean` to clean compiled js at development mode once
-
-### Requirement
-
-- Node.js 16.x
-- Typescript 4.x
+1. [pdfmake 怎么使用自定义字体](https://pdfmake.github.io/docs/0.1/fonts/custom-fonts-client-side/vfs/)
+   - [x] 主要是要执行`node build-vfs.js "./examples/fonts"`
+2. 如何renderHtml2PdfMake

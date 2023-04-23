@@ -1,7 +1,22 @@
 import { Controller } from "egg";
 import fs from "fs";
-var pdf = require("pdf-creator-node");
-import path from "path";
+import htmlToPdfMake from "html-to-pdfmake";
+var jsdom = require("jsdom");
+var { JSDOM } = jsdom;
+var { window } = new JSDOM("");
+import pdfMake from "pdfmake/build/pdfmake";
+import pdfFonts from "pdfmake/build/vfs_fonts";
+pdfMake.vfs = pdfFonts.pdfMake.vfs;
+
+// 添加支持中文的字体
+pdfMake.fonts = {
+  sourceHanSerif: {
+    normal: "SourceHanSerifCN-Regular.otf",
+    bold: "SourceHanSerifCN-Bold.otf",
+    italics: "SourceHanSerifCN-Regular.otf",
+    bolditalics: "SourceHanSerifCN-Bold.otf",
+  },
+};
 
 export default class CrawlerController extends Controller {
   public async getExercises() {
@@ -14,26 +29,8 @@ export default class CrawlerController extends Controller {
 
   async download() {
     const { ctx } = this;
-    var html = fs.readFileSync(path.resolve(__dirname, "../../template.html"), "utf8");
-    var options = {
-      format: "A3",
-      orientation: "portrait",
-      border: "10mm",
-      // header: {
-      //   height: "45mm",
-      //   contents: '<div style="text-align: center;">Author: Shyam Hajare</div>',
-      // },
-      // footer: {
-      //   height: "28mm",
-      //   contents: {
-      //     first: "Cover page",
-      //     2: "Second page", // Any page number is working. 1-based index
-      //     default: '<span style="color: #444;">{{page}}</span>/<span>{{pages}}</span>', // fallback value
-      //     last: "Last Page",
-      //   },
-      // },
-    };
-    var users = [
+
+    var data = [
       {
         _id: "6442b48f29b3a90fd49a93b5",
         chapters: [
@@ -5124,23 +5121,54 @@ export default class CrawlerController extends Controller {
         ],
       },
     ];
-    var document = {
-      html: html,
-      data: {
-        users: users,
+
+    // PDF文档定义
+    const docDefinition = {
+      content: [
+        {
+          text: "kaoshiti", // 标题
+          style: "header",
+        },
+        {
+          ul: data.map((item) => ({
+            text: htmlToPdfMake(item.name, { window }),
+            style: "question",
+            margin: [0, 10],
+            ul: item.subjectsArr.map((subject) => {
+              return {
+                text: htmlToPdfMake(subject.content, { window }),
+              };
+            }),
+          })),
+        },
+      ],
+      styles: {
+        header: {
+          fontSize: 18,
+          alignment: "center",
+          margin: [0, 0, 0, 20],
+        },
+        question: {
+          fontSize: 14,
+          margin: [0, 0, 0, 10],
+        },
+        body: {
+          fontSize: 12,
+        },
       },
-      path: "./output.pdf",
-      type: "",
+      defaultStyle: {
+        font: "sourceHanSerif",
+      },
     };
-    // By default a file is created but you could switch between Buffer and Streams by using "buffer" or "stream" respectively.
-    pdf
-      .create(document, options)
-      .then((res) => {
-        console.log(res);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+
+    // 生成PDF文档
+    const pdfDoc = pdfMake.createPdf(docDefinition);
+
+    // 将PDF文档保存到本地
+    pdfDoc.getBuffer((buffer) => {
+      fs.writeFileSync("questions.pdf", buffer);
+    });
+
     ctx.body = "done";
   }
 }
