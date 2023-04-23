@@ -20,7 +20,7 @@ export class Crawler extends Service {
 
   public async getSingleExercise(id: string) {
     const { data: { sheet } } = await this.ctx.curl(
-      `https://tiku.fenbi.com/api/xingce/exercises/${id}?app=web&kav=100&av=100&hav=100&version=3.0.0.0`,
+      `${this.config.fenbi.exercisesUrl}${id}`,
       this.option
     );
     this.getSubjects(sheet?.questionIds);
@@ -36,7 +36,7 @@ export class Crawler extends Service {
   public async getSubjects(ids: number[]) {
     if (ids?.length) {
       const { data } = await this.ctx.curl(
-        `https://tiku.fenbi.com/api/xingce/questions?ids=${ids?.join(",")}`,
+        `${this.config.fenbi.subjectUrl}${ids?.join(",")}`,
         this.option
       );
       if (Array.isArray(data)) {
