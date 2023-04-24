@@ -397,8 +397,7 @@ export default class CrawlerController extends Controller {
             _id: "6442b48f29b3a90fd49a93fc",
             accessories: [{ options: ["A", "B", "C", "D"], type: 101 }],
             id: 2578104,
-            content:
-              '<p>从所给四个选项中，选择最合适的一项填入问号处，使之呈现一定的规律性。</p><p><img width="478px" height="575px" src="https://fb.fenbike.cn/api/tarzan/images/173a399df1478af.png?width=700" /></p>',
+            content: "<p>从所给四个选项中，选择最合适的一项填入问号处，使之呈现一定的规律性。</p>",
             material: null,
             type: 1,
             difficulty: 3,
@@ -5131,14 +5130,27 @@ export default class CrawlerController extends Controller {
         },
         {
           ul: data.map((item) => ({
-            text: htmlToPdfMake(item.name, { window }),
-            style: "question",
-            margin: [0, 10],
-            ul: item.subjectsArr.map((subject) => {
-              return {
-                text: htmlToPdfMake(subject.content, { window }),
-              };
-            }),
+            stack: [
+              {
+                text: htmlToPdfMake(item.name, { window }),
+                style: "question",
+                margin: [0, 10],
+              },
+              {
+                ul: item.subjectsArr.map((subject) => {
+                  return [
+                    subject.content,
+                    // htmlToPdfMake(, { window }),
+                    {
+                      stack: subject?.accessories?.[0]?.options?.map((entity, index) => {
+                        const map = ["A", "B", "C", "D"];
+                        return `${map[index]}. ${entity}`;
+                      }),
+                    },
+                  ];
+                }),
+              },
+            ],
           })),
         },
       ],
