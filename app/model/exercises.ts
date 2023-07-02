@@ -2,50 +2,79 @@ module.exports = (app) => {
   const mongoose = app.mongoose;
   const Schema = mongoose.Schema;
 
+  // 练习，例如2023-湖南省考
   const ExercisesSchema = new Schema({
     id: {
       type: "Number",
+      unique: true,
     },
-    keypointId: {
+    userId: {
       type: "Number",
     },
-    type: {
+    createdTime: {
       type: "Number",
     },
-    name: {
+    updatedTime: {
+      type: "Number",
+    },
+    status: {
+      type: "Number",
+    },
+    quizId: {
+      type: "Number",
+    },
+    client: {
       type: "String",
     },
-    paperId: {
+    features: {},
+    version: {
       type: "Number",
     },
-    questionCount: {
+    userAnswers: {},
+    elapsedTime: {
       type: "Number",
     },
-    time: {
+    currentTime: {
       type: "Number",
     },
-    chapters: {
-      type: ["Mixed"],
-    },
-    questionIds: {
-      type: ["Number"],
-    },
-    requestType: {
-      type: "Number",
-    },
-    requestNum: {
-      type: "Number",
-    },
-    difficulty: {
-      type: "Number",
-    },
-    features: {
-      shenlunAsNomal: {
-        type: "Date",
+    sheet: {
+      id: {
+        type: "Number",
       },
-      needVipSubmit: {
-        type: "Date",
+      keypointId: {
+        type: "Number",
       },
+      type: {
+        type: "Number",
+      },
+      name: {
+        type: "String",
+      },
+      paperId: {
+        type: "Number",
+      },
+      questionCount: {
+        type: "Number",
+      },
+      time: {
+        type: "Number",
+      },
+      chapters: {
+        type: ["Mixed"],
+      },
+      questionIds: {
+        type: ["Number"],
+      },
+      requestType: {
+        type: "Number",
+      },
+      requestNum: {
+        type: "Number",
+      },
+      difficulty: {
+        type: "Number",
+      },
+      features: {},
     },
   });
 
