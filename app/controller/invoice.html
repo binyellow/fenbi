@@ -1,0 +1,68 @@
+<style>
+  body {
+    margin: 0;
+  }
+  .body {
+    padding: 8px 16px;
+  }
+  /* 题目内容 */
+  .timu .content:not(:last-child) {
+    margin-bottom: 40px;
+    line-height: 2rem;
+
+    display: flex;
+    gap: 10px;
+  }
+  .timu .content p {
+    margin: 0;
+  }
+
+  /* 选项 */
+  .timu .content .option {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  /* 选项wrapper */
+  .timu .content .option .option-content {
+    display: flex;
+  }
+  /* A B C D */
+  .timu .content .option .option-content .prefix {
+    border-radius: 50%;
+    border: 1px solid #9ea5bb;
+
+    display: flex;
+    width: 30px;
+    height: 30px;
+    margin-right: 14px;
+    justify-content: center;
+    align-items: center;
+    font-size: 15px;
+    color: #636e92;
+  }
+</style>
+
+<div class="body">
+  <div class="timu">
+    {{#each timu}}
+    <div class="content">
+      <div class="left-num">{{inc @index}}.</div>
+      <div>
+        <div class="topic-content">{{{content}}}</div>
+        <div class="option">
+          {{#each this.accessories}} {{#each this.options}}
+          <span class="option-content">
+            <span class="prefix">{{lookup (array 'A' 'B' 'C' 'D') @index}}</span>
+            <span>{{this}}</span>
+          </span>
+          {{/each}} {{/each}}
+        </div>
+      </div>
+    </div>
+    {{/each}}
+  </div>
+</div>
