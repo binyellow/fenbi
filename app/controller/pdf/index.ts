@@ -4,8 +4,16 @@ const handlebars = require("handlebars");
 handlebars.registerHelper("array", function () {
   return Array.from(arguments).slice(0, -1);
 });
-handlebars.registerHelper('inc', function(num) {
+handlebars.registerHelper("inc", function (num) {
   return num + 1;
+});
+// 补全https
+handlebars.registerHelper("replaceImgSrc", function (src) {
+  var imgreg = /<img.*?>/gi;
+  return src.replace(imgreg, function (imgsrc) {
+    imgsrc = imgsrc.replace(/src=(?:"\s*([^"]*)\s*"|'\s*([^']*)\s*'|(\S+))/i, 'src="' + 'https:' + '$1"');
+    return imgsrc;
+  });
 });
 
 export const html_to_pdf = async ({ templateHtml, dataBinding, options }) => {

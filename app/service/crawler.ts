@@ -32,6 +32,29 @@ export class Crawler extends Service {
     }
   }
 
+  // 通过试卷id + 题型 筛选题目
+  public async getQuestionsByExercisesId(id: string, fenbiType?: string) {
+    const entity = await this.Exercises.findOne({ id });
+    let questions;
+    if (entity) {
+      const { questionIds } = entity?.sheet;
+      let match: any = { id: { $in: questionIds } };
+      if(fenbiType) {
+        match.fenbiType = +fenbiType
+      }
+      questions = await this.Questions.aggregate([
+        { $match: match },
+        { $addFields: {
+          __order: { $indexOfArray: [questionIds, '$id'] }
+        }},
+        { $sort: { __order: 1 } },
+        { $project: { __order: 0 } }
+      ]);
+      console.log(questions, match);
+    }
+    return questions;
+  }
+
   public async getSubjects(ids: number[], chapters) {
     // 记录每种题型的last index
     const typeArrEnd = chapters?.reduce((pre, cur, index) => {
@@ -48,12 +71,12 @@ export class Crawler extends Service {
         };
       });
       console.log(syntheticData, JSON.stringify(typeArrEnd));
-      const operations = syntheticData.map(exercise => ({
+      const operations = syntheticData.map((exercise) => ({
         updateOne: {
           filter: { id: exercise.id },
           update: { $set: exercise },
-          upsert: true
-        }
+          upsert: true,
+        },
       }));
       if (Array.isArray(syntheticData)) {
         await this.Questions.bulkWrite(operations);
