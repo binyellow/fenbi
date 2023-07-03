@@ -23,12 +23,37 @@ export default class CrawlerController extends Controller {
     return res;
   }
 
+  // 获取某个省份的所有试卷
+  async getPapers() {
+    const { ctx } = this;
+    // id是省份的唯一标识，labelId
+    const { id } = ctx.query;
+
+    const res = await ctx.service.crawler.getPapers(id);
+    const { list } = res;
+    await Promise.allSettled(
+      list?.map((paper) => {
+        // 如果已创建练习，则通过练习id获取
+        if (paper?.exercise?.id) {
+          this.ctx.logger.info(`${paper?.exercise?.id}-已创建练习`);
+          return ctx.service.crawler.getSingleExistedExercise(paper?.exercise?.id);
+        }
+        this.ctx.logger.info(`${paper?.id}-未创建练习`);
+        return ctx.service.crawler.getSingleExercise(paper?.id);
+      })
+    ).then(() => {
+      this.ctx.logger.info(`${id}-该省所有试卷已爬完`);
+    });
+
+    return (ctx.body = res);
+  }
+
   async download() {
     const { ctx } = this;
 
     let res;
     let html;
-    const timu = await ctx.service.crawler.getQuestionsByExercisesId('2007718989');
+    const timu = await ctx.service.crawler.getQuestionsByExercisesId("2007718989", "2");
     try {
       const dataBinding = {
         timu,
@@ -40,7 +65,7 @@ export default class CrawlerController extends Controller {
 
       const options = {
         format: "A4",
-        headerTemplate: "<p></p>",
+        headerTemplate: "<p style='height: 22px'>湖南-行测</p>",
         footerTemplate: "<p></p>",
         displayHeaderFooter: false,
         margin: {
@@ -53,15 +78,13 @@ export default class CrawlerController extends Controller {
       };
 
       [res, html] = await html_to_pdf({ templateHtml, dataBinding, options });
-
-      // console.log("Done: invoice.pdf is created!", res, html);
     } catch (err) {
-      console.log("ERROR:", err);
+      this.ctx.logger.error(err);
     }
 
-    console.log('return==>', res?.length, html?.length);
+    console.log("return==>", res?.length, html?.length);
     console.log(html);
-    ctx.type = "application/pdf";
-    ctx.body = res;
+    // ctx.type = "application/pdf";
+    ctx.body = html;
   }
 }

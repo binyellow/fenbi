@@ -16,3 +16,4 @@
    <!-- 然后才可以在模板中使用 -->
    {{lookup (array 'A' 'B' 'C' 'D') @index}}
    ```
+4. [JS补全https协议](https://blog.csdn.net/gao_shao_liang/article/details/40426857)

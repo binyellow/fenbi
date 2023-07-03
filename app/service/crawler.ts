@@ -19,13 +19,37 @@ export class Crawler extends Service {
     },
   };
 
+  // 爬取试卷paperId对应的 试卷信息
+  // 未创建练习的case
   public async getSingleExercise(id: string) {
-    const { data } = await this.ctx.curl(`${this.config.fenbi.exercisesUrl}${id}`, this.option);
+    const { data } = await this.ctx.curl(`${this.config.fenbi.exercisesUrl}`, {
+      ...this.option,
+      method: "POST",
+      data: { paperId: id },
+    });
+
+    this.logger.info("爬取试卷id对应内容", data);
+
     const { sheet } = data;
     this.getSubjects(sheet?.questionIds, sheet?.chapters);
     try {
       await this.Exercises.updateOne({ id: data?.id }, { $set: data }, { upsert: true });
       // this.ctx.logger.info(re, data);
+      return sheet;
+    } catch (error) {
+      this.ctx.logger.error(error);
+    }
+  }
+
+  // 通过练习id获取试卷信息
+  // 已创建练习的case
+  public async getSingleExistedExercise(id: string) {
+    const { data } = await this.ctx.curl(`${this.config.fenbi.exercisesUrl}/${id}`, this.option);
+    this.ctx.logger.info("通过练习id获取试卷信息", id, data);
+    const { sheet } = data;
+    this.getSubjects(sheet?.questionIds, sheet?.chapters);
+    try {
+      await this.Exercises.updateOne({ id: data?.id }, { $set: data }, { upsert: true });
       return sheet;
     } catch (error) {
       this.ctx.logger.error(error);
@@ -39,22 +63,24 @@ export class Crawler extends Service {
     if (entity) {
       const { questionIds } = entity?.sheet;
       let match: any = { id: { $in: questionIds } };
-      if(fenbiType) {
-        match.fenbiType = +fenbiType
+      if (fenbiType) {
+        match.fenbiType = +fenbiType;
       }
       questions = await this.Questions.aggregate([
         { $match: match },
-        { $addFields: {
-          __order: { $indexOfArray: [questionIds, '$id'] }
-        }},
+        {
+          $addFields: {
+            __order: { $indexOfArray: [questionIds, "$id"] },
+          },
+        },
         { $sort: { __order: 1 } },
-        { $project: { __order: 0 } }
+        { $project: { __order: 0 } },
       ]);
-      console.log(questions, match);
     }
     return questions;
   }
 
+  // 爬取questionIds对应的题目列表
   public async getSubjects(ids: number[], chapters) {
     // 记录每种题型的last index
     const typeArrEnd = chapters?.reduce((pre, cur, index) => {
@@ -70,7 +96,6 @@ export class Crawler extends Service {
           fenbiType: currentTypeRange?.fenbiType,
         };
       });
-      console.log(syntheticData, JSON.stringify(typeArrEnd));
       const operations = syntheticData.map((exercise) => ({
         updateOne: {
           filter: { id: exercise.id },
@@ -82,6 +107,25 @@ export class Crawler extends Service {
         await this.Questions.bulkWrite(operations);
       }
     }
+  }
+
+  // 获取某个省份的所有试卷
+  async getPapers(id: string) {
+    const { data } = await this.ctx.curl(`${this.config.fenbi.paperUrl}`, {
+      ...this.option,
+      data: {
+        toPage: 0,
+        pageSize: 30,
+        labelId: id,
+        app: "web",
+        kav: 100,
+        av: 100,
+        hav: 100,
+        version: "3.0.0.0",
+      },
+    });
+
+    return data;
   }
 }
 
