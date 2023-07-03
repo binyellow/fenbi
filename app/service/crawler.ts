@@ -127,6 +127,46 @@ export class Crawler extends Service {
 
     return data;
   }
+
+  // 获取试卷-练习历史
+  async getCategoryExercises() {
+    const { data } = await this.ctx.curl(`${this.config.fenbi.categoryExercisesUrl}`, {
+      ...this.option,
+      data: {
+        categoryId: 1,
+        cursor: 15,
+        count: 15,
+        noCacheTag: 124,
+        app: "web",
+        kav: 100,
+        av: 100,
+        hav: 100,
+        version: "3.0.0.0",
+      },
+    });
+
+    return data;
+  }
+
+  // 获取试卷-练习历史
+  async submitExercises(data) {
+    return Promise.all(data?.datas?.map(exercise=> {
+      this.ctx.logger.info('url', `${this.config.fenbi.submitExerciseUrl}${exercise?.id}/submit`, exercise?.score)
+      if(exercise?.score !== undefined) return Promise.resolve();
+      return this.ctx.curl(`${this.config.fenbi.submitExerciseUrl}${exercise?.id}/submit`, {
+        ...this.option,
+        method: 'POST',
+        data: {
+          status: 1,
+          app: "web",
+          kav: 100,
+          av: 100,
+          hav: 100,
+          version: "3.0.0.0",
+        },
+      })
+    }))
+  }
 }
 
 export default Crawler;

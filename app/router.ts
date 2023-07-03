@@ -10,6 +10,8 @@ export default (app: Application) => {
   router.get('/getQuestionsByExercisesId', controller.crawler.getQuestionsByExercisesId);
   // 获取省份对应试卷列表
   router.get('/getPapers', controller.crawler.getPapers);
+  // 提交未完成的试卷
+  router.get('/submitExercises', controller.crawler.submitExercises);
   router.get('/download', controller.crawler.download);
   router.get('/news/item/:id', controller.news.detail);
   router.get('/news/user/:id', controller.news.user);

@@ -17,3 +17,4 @@
    {{lookup (array 'A' 'B' 'C' 'D') @index}}
    ```
 4. [JS补全https协议](https://blog.csdn.net/gao_shao_liang/article/details/40426857)
+5. pdf图片不显示可能是代理的原因

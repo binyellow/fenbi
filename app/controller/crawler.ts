@@ -2,6 +2,7 @@ import { Controller } from "egg";
 import fs from "fs";
 import path from "path";
 import { html_to_pdf } from "./pdf";
+import { fenbiTypeEnum } from "../service/data";
 
 export default class CrawlerController extends Controller {
   public async getExercises() {
@@ -21,6 +22,15 @@ export default class CrawlerController extends Controller {
 
     const res = await ctx.service.crawler.getQuestionsByExercisesId(id, fenbiType);
     return res;
+  }
+
+  // 提交未完成的试卷
+  async submitExercises() {
+    const { ctx } = this;
+
+    const data = await ctx.service.crawler.getCategoryExercises();
+    const res = await ctx.service.crawler.submitExercises(data);
+    return (ctx.body = res);
   }
 
   // 获取某个省份的所有试卷
@@ -53,7 +63,8 @@ export default class CrawlerController extends Controller {
 
     let res;
     let html;
-    const timu = await ctx.service.crawler.getQuestionsByExercisesId("2007718989", "2");
+    const timu = await ctx.service.crawler.getQuestionsByExercisesId("2203144762", fenbiTypeEnum.changshi + "");
+    // const timu = await ctx.service.crawler.getQuestionsByExercisesId("2007718989", "2");
     try {
       const dataBinding = {
         timu,
@@ -65,7 +76,7 @@ export default class CrawlerController extends Controller {
 
       const options = {
         format: "A4",
-        headerTemplate: "<p style='height: 22px'>湖南-行测</p>",
+        headerTemplate: "<p></p>",
         footerTemplate: "<p></p>",
         displayHeaderFooter: false,
         margin: {
@@ -84,7 +95,7 @@ export default class CrawlerController extends Controller {
 
     console.log("return==>", res?.length, html?.length);
     console.log(html);
-    // ctx.type = "application/pdf";
-    ctx.body = html;
+    ctx.type = "application/pdf";
+    ctx.body = res;
   }
 }
