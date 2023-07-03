@@ -1,31 +1,90 @@
 import { Controller } from "egg";
-const PDFDocument = require("pdfkit/js/pdfkit.standalone.js");
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
+import { html_to_pdf } from "./pdf";
 
 export default class CrawlerController extends Controller {
   public async getExercises() {
     const { ctx } = this;
+    // id是卷子的id，例如湖南卷2023是 2202730411
     const { id } = ctx.query;
 
     const res = await ctx.service.crawler.getSingleExercise(id);
     ctx.body = res;
   }
 
-  async download() {
-    // 创建 PDF 文件
-    const doc = new PDFDocument();
-    doc.pipe(fs.createWriteStream("output.pdf"));
-    // 添加文本内容
-    doc.fontSize(16).text("Hello World!", 100, 100);
-    // 结束文件
-    doc.end();
+  // 返回某个卷子id对应的所有题
+  async getQuestionsByExercisesId() {
+    const { ctx } = this;
+    // id是卷子的id，例如湖南卷2023是 2202730411
+    const { id, fenbiType } = ctx.query;
 
-    // 读取文件并发送至客户端下载
-    const file = path.resolve(__dirname, "../../output.pdf");
-    const filename = "myPDF.pdf";
-    this.ctx.set("Content-disposition", `attachment;filename=${filename}`);
-    this.ctx.set("Content-Type", "application/pdf");
-    this.ctx.body = fs.createReadStream(file);
+    const res = await ctx.service.crawler.getQuestionsByExercisesId(id, fenbiType);
+    return res;
+  }
+
+  // 获取某个省份的所有试卷
+  async getPapers() {
+    const { ctx } = this;
+    // id是省份的唯一标识，labelId
+    const { id } = ctx.query;
+
+    const res = await ctx.service.crawler.getPapers(id);
+    const { list } = res;
+    await Promise.allSettled(
+      list?.map((paper) => {
+        // 如果已创建练习，则通过练习id获取
+        if (paper?.exercise?.id) {
+          this.ctx.logger.info(`${paper?.exercise?.id}-已创建练习`);
+          return ctx.service.crawler.getSingleExistedExercise(paper?.exercise?.id);
+        }
+        this.ctx.logger.info(`${paper?.id}-未创建练习`);
+        return ctx.service.crawler.getSingleExercise(paper?.id);
+      })
+    ).then(() => {
+      this.ctx.logger.info(`${id}-该省所有试卷已爬完`);
+    });
+
+    return (ctx.body = res);
+  }
+
+  async download() {
+    const { ctx } = this;
+
+    let res;
+    let html;
+    const timu = await ctx.service.crawler.getQuestionsByExercisesId("2007718989", "2");
+    try {
+      const dataBinding = {
+        timu,
+        total: 600,
+        isWatermark: true,
+      };
+
+      const templateHtml = fs.readFileSync(path.join(__dirname, "invoice.html"), "utf8");
+
+      const options = {
+        format: "A4",
+        headerTemplate: "<p style='height: 22px'>湖南-行测</p>",
+        footerTemplate: "<p></p>",
+        displayHeaderFooter: false,
+        margin: {
+          top: "20px",
+          bottom: "20px",
+        },
+        printBackground: true,
+        path: "invoice.pdf",
+        preferCSSPageSize: true,
+      };
+
+      [res, html] = await html_to_pdf({ templateHtml, dataBinding, options });
+    } catch (err) {
+      this.ctx.logger.error(err);
+    }
+
+    console.log("return==>", res?.length, html?.length);
+    console.log(html);
+    // ctx.type = "application/pdf";
+    ctx.body = html;
   }
 }

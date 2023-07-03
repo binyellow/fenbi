@@ -1,33 +1,19 @@
-# hackernews-async-ts
+## 问题
 
-[Hacker News](https://news.ycombinator.com/) showcase using typescript && egg
+1. [更换成这个库](https://github.com/chuongtrh/html_to_pdf)
+   1. [pdfmake 怎么使用自定义字体](https://pdfmake.github.io/docs/0.1/fonts/custom-fonts-client-side/vfs/)
+      - [x] 主要是要执行`node build-vfs.js "./examples/fonts"`
+   2. 如何 renderHtml2PdfMake
+   - [x] 换了一个库，[但是碰到 flex 不生效问题，需要转换成 webkit 前缀](https://github.com/marcbachmann/node-html-pdf/issues/24#:~:text=https%3A//autoprefixer.github.io/)
+2. Handlebars 的三个大括号语法，解决 img 标签渲染问题
+3. 使用 lookup 帮助方法和一个字符数组来实现将索引值映射为 A、B、C、D 等字符，需要自己构造 arr
 
-## QuickStart
+   ```js
+   handlebars.registerHelper("array", function () {
+     return Array.from(arguments).slice(0, -1);
+   });
 
-### Development
-
-```bash
-$ npm i
-$ npm run dev
-$ open http://localhost:7001/
-```
-
-Don't tsc compile at development mode, if you had run `tsc` then you need to `npm run clean` before `npm run dev`.
-
-### Deploy
-
-```bash
-$ npm run tsc
-$ npm start
-```
-
-### Npm Scripts
-
-- Use `npm run lint` to check code style
-- Use `npm test` to run unit test
-- se `npm run clean` to clean compiled js at development mode once
-
-### Requirement
-
-- Node.js 16.x
-- Typescript 4.x
+   <!-- 然后才可以在模板中使用 -->
+   {{lookup (array 'A' 'B' 'C' 'D') @index}}
+   ```
+4. [JS补全https协议](https://blog.csdn.net/gao_shao_liang/article/details/40426857)

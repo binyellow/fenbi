@@ -1,15 +1,16 @@
 import { Service } from "egg";
+import { typeIndex } from "./data";
 
 /**
  * Crawler Api Service
  */
 export class Crawler extends Service {
   Exercises: any;
-  Subject: any;
+  Questions: any;
   constructor(ctx) {
     super(ctx);
     this.Exercises = ctx.model.Exercises;
-    this.Subject = ctx.model.Subject;
+    this.Questions = ctx.model.Questions;
   }
   option = {
     dataType: "json",
@@ -18,14 +19,21 @@ export class Crawler extends Service {
     },
   };
 
+  // 爬取试卷paperId对应的 试卷信息
+  // 未创建练习的case
   public async getSingleExercise(id: string) {
-    const { data: { sheet } } = await this.ctx.curl(
-      `${this.config.fenbi.exercisesUrl}${id}`,
-      this.option
-    );
-    this.getSubjects(sheet?.questionIds);
+    const { data } = await this.ctx.curl(`${this.config.fenbi.exercisesUrl}`, {
+      ...this.option,
+      method: "POST",
+      data: { paperId: id },
+    });
+
+    this.logger.info("爬取试卷id对应内容", data);
+
+    const { sheet } = data;
+    this.getSubjects(sheet?.questionIds, sheet?.chapters);
     try {
-      await this.Exercises.create(sheet);
+      await this.Exercises.updateOne({ id: data?.id }, { $set: data }, { upsert: true });
       // this.ctx.logger.info(re, data);
       return sheet;
     } catch (error) {
@@ -33,16 +41,91 @@ export class Crawler extends Service {
     }
   }
 
-  public async getSubjects(ids: number[]) {
+  // 通过练习id获取试卷信息
+  // 已创建练习的case
+  public async getSingleExistedExercise(id: string) {
+    const { data } = await this.ctx.curl(`${this.config.fenbi.exercisesUrl}/${id}`, this.option);
+    this.ctx.logger.info("通过练习id获取试卷信息", id, data);
+    const { sheet } = data;
+    this.getSubjects(sheet?.questionIds, sheet?.chapters);
+    try {
+      await this.Exercises.updateOne({ id: data?.id }, { $set: data }, { upsert: true });
+      return sheet;
+    } catch (error) {
+      this.ctx.logger.error(error);
+    }
+  }
+
+  // 通过试卷id + 题型 筛选题目
+  public async getQuestionsByExercisesId(id: string, fenbiType?: string) {
+    const entity = await this.Exercises.findOne({ id });
+    let questions;
+    if (entity) {
+      const { questionIds } = entity?.sheet;
+      let match: any = { id: { $in: questionIds } };
+      if (fenbiType) {
+        match.fenbiType = +fenbiType;
+      }
+      questions = await this.Questions.aggregate([
+        { $match: match },
+        {
+          $addFields: {
+            __order: { $indexOfArray: [questionIds, "$id"] },
+          },
+        },
+        { $sort: { __order: 1 } },
+        { $project: { __order: 0 } },
+      ]);
+    }
+    return questions;
+  }
+
+  // 爬取questionIds对应的题目列表
+  public async getSubjects(ids: number[], chapters) {
+    // 记录每种题型的last index
+    const typeArrEnd = chapters?.reduce((pre, cur, index) => {
+      const last = pre?.[pre?.length - 1]?.value || 0;
+      return [...pre, { value: last + cur?.questionCount, fenbiType: typeIndex[index] }];
+    }, []);
     if (ids?.length) {
-      const { data } = await this.ctx.curl(
-        `${this.config.fenbi.subjectUrl}${ids?.join(",")}`,
-        this.option
-      );
-      if (Array.isArray(data)) {
-        await this.Subject.insertMany(data);
+      const { data } = await this.ctx.curl(`${this.config.fenbi.subjectUrl}${ids?.join(",")}`, this.option);
+      const syntheticData = data?.map((entity, index) => {
+        const currentTypeRange = typeArrEnd.find((en) => index < en?.value);
+        return {
+          ...entity,
+          fenbiType: currentTypeRange?.fenbiType,
+        };
+      });
+      const operations = syntheticData.map((exercise) => ({
+        updateOne: {
+          filter: { id: exercise.id },
+          update: { $set: exercise },
+          upsert: true,
+        },
+      }));
+      if (Array.isArray(syntheticData)) {
+        await this.Questions.bulkWrite(operations);
       }
     }
+  }
+
+  // 获取某个省份的所有试卷
+  async getPapers(id: string) {
+    const { data } = await this.ctx.curl(`${this.config.fenbi.paperUrl}`, {
+      ...this.option,
+      data: {
+        toPage: 0,
+        pageSize: 30,
+        labelId: id,
+        app: "web",
+        kav: 100,
+        av: 100,
+        hav: 100,
+        version: "3.0.0.0",
+      },
+    });
+
+    return data;
   }
 }
 
