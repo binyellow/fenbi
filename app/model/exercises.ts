@@ -76,6 +76,12 @@ module.exports = (app) => {
       },
       features: {},
     },
+    year: {
+      type: "string",
+    },
+    province: {
+      type: "string",
+    },
   });
 
   return mongoose.model("exercises", ExercisesSchema);

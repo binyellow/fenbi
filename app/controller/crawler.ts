@@ -62,9 +62,11 @@ export default class CrawlerController extends Controller {
     const { ctx } = this;
 
     let res;
-    let html;
-    const timu = await ctx.service.crawler.getQuestionsByExercisesId("2203144762", fenbiTypeEnum.changshi + "");
+    // let html;
+    const timu = await ctx.service.crawler.getQuestionsByExercisesId("2203045001", fenbiTypeEnum.changshi + "");
     // const timu = await ctx.service.crawler.getQuestionsByExercisesId("2007718989", "2");
+
+    // console.log(timu);
     try {
       const dataBinding = {
         timu,
@@ -88,13 +90,13 @@ export default class CrawlerController extends Controller {
         preferCSSPageSize: true,
       };
 
-      [res, html] = await html_to_pdf({ templateHtml, dataBinding, options });
+      [res] = await html_to_pdf({ templateHtml, dataBinding, options });
     } catch (err) {
       this.ctx.logger.error(err);
     }
 
-    console.log("return==>", res?.length, html?.length);
-    console.log(html);
+    // console.log("return==>", res?.length, html?.length);
+    // console.log(html);
     ctx.type = "application/pdf";
     ctx.body = res;
   }

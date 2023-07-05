@@ -59,6 +59,7 @@ export class Crawler extends Service {
   // 通过试卷id + 题型 筛选题目
   public async getQuestionsByExercisesId(id: string, fenbiType?: string) {
     const entity = await this.Exercises.findOne({ id });
+    console.log(entity);
     let questions;
     if (entity) {
       const { questionIds } = entity?.sheet;
@@ -134,8 +135,8 @@ export class Crawler extends Service {
       ...this.option,
       data: {
         categoryId: 1,
-        cursor: 15,
-        count: 15,
+        cursor: 60,
+        count: 30,
         noCacheTag: 124,
         app: "web",
         kav: 100,

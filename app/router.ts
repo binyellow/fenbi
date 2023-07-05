@@ -12,6 +12,8 @@ export default (app: Application) => {
   router.get('/getPapers', controller.crawler.getPapers);
   // 提交未完成的试卷
   router.get('/submitExercises', controller.crawler.submitExercises);
+  // 填充省市 & 年份
+  router.get('/fillYearAndProvince', controller.crawlerParse.fillYearAndProvince);
   router.get('/download', controller.crawler.download);
   router.get('/news/item/:id', controller.news.detail);
   router.get('/news/user/:id', controller.news.user);
