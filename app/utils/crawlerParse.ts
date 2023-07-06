@@ -1,7 +1,9 @@
 import { shen } from "../service/data";
 
-export const filterData = (data) => {
-  return data?.filter((en) => !en?.year || !en?.province);
+export const filterData = (data, provinceName?) => {
+  if (provinceName) return data?.filter((en) => en?.province === provinceName);
+  const res = data?.filter((en) => !en?.year || !en?.province);
+  return res;
 };
 
 // 简单的省 & 年
@@ -58,37 +60,51 @@ export const fillYearAndProvince1 = (data) => {
   });
 };
 
-// 安徽省2019年面向全国重点高校定向招录选调生《行测》题（网友回忆版）
-export const fillYearAndProvince2 = (data) => {
-  return filterData(data).map((exercise) => {
-    const { sheet } = exercise;
-    const reg = /(\d+)年/;
-    const matchResult = sheet?.name.match(reg) || [];
-    const year = matchResult[1]; // 2023
-
-    const reg2 = /(.+省)/;
-    const matchResult1 = sheet?.name.match(reg2) || [];
+// 修正省市名称
+export const fillYearAndProvince2 = (data, province = "湖南省") => {
+  return filterData(data, province).map((exercise) => {
+    const reg2 = /(.+[省市])/;
+    const matchResult1 = exercise?.province?.match(reg2) || [];
     let province = matchResult1[1]; // 湖南省
-    const matchedProvince = shen.find((en) => sheet?.name?.includes(en));
+    const matchedProvince = shen.find((en) => exercise?.province?.includes(en))?.replace(/省|市/, "");
+    console.log("删除省市的数据", province, matchedProvince);
     if (matchedProvince) {
       if (province?.includes(matchedProvince) && province !== matchedProvince) province = matchedProvince;
     }
 
     let syntheticExercise = exercise;
-    if (year && !exercise?.year) {
-      syntheticExercise.year = year;
-    }
-    if (province && !exercise?.province) {
+    if (province && province !== exercise?.province) {
       syntheticExercise.province = province;
-    }
-    if (sheet?.name === "安徽省2019年面向全国重点高校定向招录选调生《行测》题（网友回忆版）") {
-      console.log(
-        syntheticExercise?.year,
-        syntheticExercise?.province,
-        syntheticExercise?.sheet?.name,
-        syntheticExercise?.id
-      );
     }
     return syntheticExercise;
   });
+};
+
+// 将query参数转换成string[]
+export const transQuery = (query) => {
+  return Object.keys(query)?.reduce((pre, cur) => {
+    return {
+      ...pre,
+      [cur]: { $in: query?.[cur]?.split(",") },
+    };
+  }, {});
+};
+
+// 根据题目ids和fenbiType来拼接出筛选条件
+export const genFilterByQIdsAndType = (questionIds, fenbiType) => {
+  let match: any = { id: { $in: questionIds } };
+  if (fenbiType) {
+    match.fenbiType = +fenbiType;
+  }
+
+  return [
+    { $match: match },
+    {
+      $addFields: {
+        __order: { $indexOfArray: [questionIds, "$id"] },
+      },
+    },
+    { $sort: { __order: 1 } },
+    { $project: { __order: 0 } },
+  ];
 };

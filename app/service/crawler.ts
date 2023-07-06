@@ -1,5 +1,6 @@
 import { Service } from "egg";
 import { typeIndex } from "./data";
+import { genFilterByQIdsAndType, transQuery } from "../utils/crawlerParse";
 
 /**
  * Crawler Api Service
@@ -59,24 +60,11 @@ export class Crawler extends Service {
   // 通过试卷id + 题型 筛选题目
   public async getQuestionsByExercisesId(id: string, fenbiType?: string) {
     const entity = await this.Exercises.findOne({ id });
-    console.log(entity);
     let questions;
     if (entity) {
       const { questionIds } = entity?.sheet;
-      let match: any = { id: { $in: questionIds } };
-      if (fenbiType) {
-        match.fenbiType = +fenbiType;
-      }
-      questions = await this.Questions.aggregate([
-        { $match: match },
-        {
-          $addFields: {
-            __order: { $indexOfArray: [questionIds, "$id"] },
-          },
-        },
-        { $sort: { __order: 1 } },
-        { $project: { __order: 0 } },
-      ]);
+      const filters = genFilterByQIdsAndType(questionIds, fenbiType);
+      questions = await this.Questions.aggregate(filters);
     }
     return questions;
   }
@@ -151,22 +139,50 @@ export class Crawler extends Service {
 
   // 获取试卷-练习历史
   async submitExercises(data) {
-    return Promise.all(data?.datas?.map(exercise=> {
-      this.ctx.logger.info('url', `${this.config.fenbi.submitExerciseUrl}${exercise?.id}/submit`, exercise?.score)
-      if(exercise?.score !== undefined) return Promise.resolve();
-      return this.ctx.curl(`${this.config.fenbi.submitExerciseUrl}${exercise?.id}/submit`, {
-        ...this.option,
-        method: 'POST',
-        data: {
-          status: 1,
-          app: "web",
-          kav: 100,
-          av: 100,
-          hav: 100,
-          version: "3.0.0.0",
-        },
+    return Promise.all(
+      data?.datas?.map((exercise) => {
+        this.ctx.logger.info("url", `${this.config.fenbi.submitExerciseUrl}${exercise?.id}/submit`, exercise?.score);
+        if (exercise?.score !== undefined) return Promise.resolve();
+        return this.ctx.curl(`${this.config.fenbi.submitExerciseUrl}${exercise?.id}/submit`, {
+          ...this.option,
+          method: "POST",
+          data: {
+            status: 1,
+            app: "web",
+            kav: 100,
+            av: 100,
+            hav: 100,
+            version: "3.0.0.0",
+          },
+        });
       })
-    }))
+    );
+  }
+
+  // 获取没有省、年的数据
+  async getNullData() {
+    return this.Exercises.find({ year: { $exists: false } });
+    // return this.Exercises.find({ $or: [{ province: { $exists: false } }, { year: { $exists: false } }] });
+  }
+
+  // 按照省、年、体型筛选
+  async getData(query) {
+    const { fenbiType, ...rest } = query;
+    const queryFields = transQuery(rest);
+    this.ctx.logger.info("查询字段", queryFields);
+    const exercises = await this.Exercises.find(queryFields);
+
+    let questions = exercises;
+    if (exercises && fenbiType !== undefined) {
+      const questionIds = exercises?.reduce((pre, cur) => {
+        return [...pre, ...cur?.sheet?.questionIds];
+      }, []);
+      this.ctx.logger.info("题目ids", questionIds);
+      const filters = genFilterByQIdsAndType(questionIds, fenbiType);
+      questions = await this.Questions.aggregate(filters);
+      this.logger.info(questions?.length, questionIds?.length);
+    }
+    return questions;
   }
 }
 

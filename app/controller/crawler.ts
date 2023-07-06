@@ -21,7 +21,7 @@ export default class CrawlerController extends Controller {
     const { id, fenbiType } = ctx.query;
 
     const res = await ctx.service.crawler.getQuestionsByExercisesId(id, fenbiType);
-    return res;
+    ctx.body = res;
   }
 
   // 提交未完成的试卷
@@ -58,12 +58,12 @@ export default class CrawlerController extends Controller {
     return (ctx.body = res);
   }
 
-  async download() {
+  async download(oTimu) {
     const { ctx } = this;
 
     let res;
-    // let html;
-    const timu = await ctx.service.crawler.getQuestionsByExercisesId("2203045001", fenbiTypeEnum.changshi + "");
+    let html;
+    const timu = oTimu || await ctx.service.crawler.getQuestionsByExercisesId("2203045001", fenbiTypeEnum.changshi + "");
     // const timu = await ctx.service.crawler.getQuestionsByExercisesId("2007718989", "2");
 
     // console.log(timu);
@@ -90,14 +90,33 @@ export default class CrawlerController extends Controller {
         preferCSSPageSize: true,
       };
 
-      [res] = await html_to_pdf({ templateHtml, dataBinding, options });
+      [res, html] = await html_to_pdf({ templateHtml, dataBinding, options });
     } catch (err) {
-      this.ctx.logger.error(err);
+      this.ctx.logger.error(err, res, html);
     }
 
     // console.log("return==>", res?.length, html?.length);
     // console.log(html);
+    (global as any).ziLiaoTimus = [];
     ctx.type = "application/pdf";
     ctx.body = res;
+  }
+
+  // 获取没有省、年的数据
+  async getNullData() {
+    const { ctx } = this;
+
+    const res = await ctx.service.crawler.getNullData();
+
+    ctx.body = res;
+  }
+
+  // 按照省、年、体型筛选
+  async getData() {
+    const { ctx } = this;
+
+    const res = await ctx.service.crawler.getData(ctx.query);
+
+    return await this.download(res);
   }
 }
