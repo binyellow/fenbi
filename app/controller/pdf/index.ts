@@ -24,7 +24,8 @@ export const html_to_pdf = async ({ templateHtml, dataBinding, options }) => {
   const finalHtml = encodeURIComponent(html);
 
   const browser = await puppeteer.launch({
-    args: ["--no-sandbox"],
+    // 禁用代理服务器，否则不能正常访问图片
+    args: ["--no-sandbox", "--proxy-server="],
     headless: true,
   });
   const page = await browser.newPage();
@@ -45,7 +46,7 @@ handlebars.registerHelper("renderZiliaoTimu", function (timu) {
     const cailiaoId = timu?.material?.id;
     if (!(global as any).ziLiaoTimus?.includes(cailiaoId)) {
       (global as any).ziLiaoTimus.push(cailiaoId);
-      return timu?.material?.content;
+      return `<div><h3>资料分析</h3>${timu?.material?.content}</div>`;
     }
   }
   return null;

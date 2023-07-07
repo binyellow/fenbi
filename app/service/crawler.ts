@@ -1,6 +1,6 @@
 import { Service } from "egg";
-import { typeIndex } from "./data";
 import { genFilterByQIdsAndType, transQuery } from "../utils/crawlerParse";
+import { genChapterTypesRange } from "../utils/crawler";
 
 /**
  * Crawler Api Service
@@ -72,10 +72,7 @@ export class Crawler extends Service {
   // 爬取questionIds对应的题目列表
   public async getSubjects(ids: number[], chapters) {
     // 记录每种题型的last index
-    const typeArrEnd = chapters?.reduce((pre, cur, index) => {
-      const last = pre?.[pre?.length - 1]?.value || 0;
-      return [...pre, { value: last + cur?.questionCount, fenbiType: typeIndex[index] }];
-    }, []);
+    const typeArrEnd = genChapterTypesRange(chapters);
     if (ids?.length) {
       const { data } = await this.ctx.curl(`${this.config.fenbi.subjectUrl}${ids?.join(",")}`, this.option);
       const syntheticData = data?.map((entity, index) => {
