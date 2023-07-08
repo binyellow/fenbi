@@ -16,5 +16,16 @@
    <!-- 然后才可以在模板中使用 -->
    {{lookup (array 'A' 'B' 'C' 'D') @index}}
    ```
-4. [JS补全https协议](https://blog.csdn.net/gao_shao_liang/article/details/40426857)
-5. pdf图片不显示可能是代理的原因
+
+4. [JS 补全 https 协议](https://blog.csdn.net/gao_shao_liang/article/details/40426857)
+5. pdf 图片不显示是代理的原因
+   ```js
+   const browser = await puppeteer.launch({
+     headless: true,
+     args: [
+       // 禁用代理服务器
+       "--proxy-server=",
+     ],
+   });
+   ```
+6. npm run debug开启debug模式，也可以输出日志

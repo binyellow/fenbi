@@ -22,4 +22,11 @@ export default class CrawlerParseController extends Controller {
     const res = await ctx.service.crawlerParse.fixQuestionType(ctx?.query);
     ctx.body = res;
   }
+
+  // 修正所有试卷的题型
+  public async fixAllQuestionType() {
+    const { ctx } = this;
+    const res = await ctx.service.crawlerParse.fixAllQuestionType();
+    ctx.body = res;
+  }
 }

@@ -174,10 +174,9 @@ export class Crawler extends Service {
       const questionIds = exercises?.reduce((pre, cur) => {
         return [...pre, ...cur?.sheet?.questionIds];
       }, []);
-      this.ctx.logger.info("题目ids", questionIds);
+      this.ctx.logger.info("题目ids", exercises);
       const filters = genFilterByQIdsAndType(questionIds, fenbiType);
       questions = await this.Questions.aggregate(filters);
-      this.logger.info(questions?.length, questionIds?.length);
     }
     return questions;
   }

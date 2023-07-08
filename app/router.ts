@@ -21,6 +21,8 @@ export default (app: Application) => {
   router.get("/findExercisesByQuestionContent", controller.crawlerParse.findExercisesByQuestionContent);
   // 修正某个试卷的题型
   router.get("/fixQuestionType", controller.crawlerParse.fixQuestionType);
+  // 修正所有试卷
+  router.get("/fixAllQuestionType", controller.crawlerParse.fixAllQuestionType);
 
   router.get("/download", controller.crawler.download);
   router.get("/news/item/:id", controller.news.detail);

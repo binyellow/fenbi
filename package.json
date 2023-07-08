@@ -23,7 +23,8 @@
     "egg-mongoose": "^3.3.1",
     "egg-scripts": "^2.17.0",
     "egg-view-nunjucks": "^2.3.0",
-    "moment": "^2.22.0"
+    "moment": "^2.22.0",
+    "util": "^0.12.5"
   },
   "devDependencies": {
     "@eggjs/tsconfig": "^1.1.0",

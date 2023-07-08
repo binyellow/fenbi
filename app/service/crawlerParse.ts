@@ -1,4 +1,5 @@
 import { Service } from "egg";
+import util from 'util';
 import { fillYearAndProvince2 } from "../utils/crawlerParse";
 import { genChapterTypesRange } from "../utils/crawler";
 
@@ -98,6 +99,45 @@ export class CrawlerParse extends Service {
       this.logger.info(updateRes);
 
       return { updateRes, typeArrEnd, e };
+    } catch (error) {
+      this.ctx.logger.error(error);
+    }
+  }
+
+  // 修正所有试卷的题型
+  public async fixAllQuestionType() {
+    try {
+      const e = await this.Exercises.find();
+      // 异常数据，题型不是常见的5类的
+      const abnormalData = e?.filter(en=> en?.chapters?.length > 5);
+      this.app.logger.info("数据", util.inspect(e, { depth: null }));
+      return abnormalData;
+      // let bulkUpdateOps: any = [];
+
+      // const typeArrEnd = genChapterTypesRange(e?.sheet?.chapters);
+      // const syntheticData = e?.sheet?.questionIds?.map((id, index) => {
+      //   const currentTypeRange = typeArrEnd.find((en) => index < en?.value);
+      //   return {
+      //     id,
+      //     fenbiType: currentTypeRange?.fenbiType,
+      //   };
+      // });
+
+      // syntheticData.forEach((data) => {
+      //   const filter = { id: data.id };
+      //   const update = { $set: { fenbiType: data.fenbiType } };
+      //   bulkUpdateOps.push({
+      //     updateOne: {
+      //       filter,
+      //       update,
+      //     },
+      //   });
+      // });
+
+      // // const updateRes = await this.Questions.bulkWrite(bulkUpdateOps);
+      // // this.logger.info(updateRes);
+
+      // return { typeArrEnd, e };
     } catch (error) {
       this.ctx.logger.error(error);
     }
