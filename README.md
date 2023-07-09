@@ -34,3 +34,8 @@
    sudo apt-get update
    sudo apt-get install fonts-wqy-zenhei
    ```
+8. 后台运行
+   ```js
+   nohup egg-scripts start > output.log 2>&1 </dev/null &
+   disown
+   ```
