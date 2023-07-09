@@ -180,6 +180,23 @@ export class Crawler extends Service {
     }
     return questions;
   }
+
+  // 返回年
+  async getYearProvinces() {
+    const data = await this.Exercises.find({}, { year: 1, province: 1 });
+
+  const distinctData = [...data].reduce((acc, curr) => {
+    if (!acc.year.includes(curr.year)) {
+      acc.year.push(curr.year);
+    }
+    if (!acc.province.includes(curr.province)) {
+      acc.province.push(curr.province);
+    }
+    return acc;
+  }, { year: [], province: [] });
+
+  return distinctData;
+  }
 }
 
 export default Crawler;

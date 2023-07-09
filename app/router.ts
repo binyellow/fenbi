@@ -14,7 +14,10 @@ export default (app: Application) => {
   router.get("/submitExercises", controller.crawler.submitExercises);
   // 查找没有省 || 年的数据
   router.get("/getNullData", controller.crawler.getNullData);
+  // 获取数据，现在其实内部是下载试卷
   router.get("/getData", controller.crawler.getData);
+  // 根据年、省、题型获取数据
+  router.get("/getSimpleData", controller.crawler.getSimpleData);
   // 填充省市 & 年份
   router.get("/fillYearAndProvince", controller.crawlerParse.fillYearAndProvince);
   // 通过题目内容查询对应的试卷
@@ -23,6 +26,8 @@ export default (app: Application) => {
   router.get("/fixQuestionType", controller.crawlerParse.fixQuestionType);
   // 修正所有试卷
   router.get("/fixAllQuestionType", controller.crawlerParse.fixAllQuestionType);
+  // 查询年份
+  router.get("/getYearProvinces", controller.crawler.getYearProvinces);
 
   router.get("/download", controller.crawler.download);
   router.get("/news/item/:id", controller.news.detail);

@@ -63,7 +63,8 @@ export default class CrawlerController extends Controller {
 
     let res;
     let html;
-    const timu = oTimu || await ctx.service.crawler.getQuestionsByExercisesId("2203045001", fenbiTypeEnum.changshi + "");
+    const timu =
+      oTimu || (await ctx.service.crawler.getQuestionsByExercisesId("2203045001", fenbiTypeEnum.changshi + ""));
     // const timu = await ctx.service.crawler.getQuestionsByExercisesId("2007718989", "2");
 
     // console.log(timu);
@@ -118,5 +119,23 @@ export default class CrawlerController extends Controller {
     const res = await ctx.service.crawler.getData(ctx.query);
 
     return await this.download(res);
+  }
+
+  // 按照省、年、体型筛选
+  async getSimpleData() {
+    const { ctx } = this;
+
+    const res = await ctx.service.crawler.getData(ctx.query);
+
+    ctx.body = res;
+  }
+
+  // 返回年
+  async getYearProvinces() {
+    const { ctx } = this;
+
+    const res = await ctx.service.crawler.getYearProvinces();
+
+    ctx.body = res;
   }
 }

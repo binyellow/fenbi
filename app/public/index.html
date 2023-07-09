@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>行测刷题宝</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      function get(url = "", data = {}) {
+        return fetch(url)
+          .then((response) => response.json())
+          .catch((error) => console.error(error));
+      }
+    </script>
+  </head>
+  <body>
+    <form id="my-form" action="/getNullData" method="GET">
+      <div id="year-container"></div>
+      <br />
+      <div id="province-container"></div>
+      <br />
+      <div id="type-container"></div>
+      <br />
+
+      <input type="submit" value="Submit" />
+    </form>
+
+    <script>
+      function getData() {
+        $.get("/getYearProvinces", function (data) {
+          const yearContainer = $("#year-container");
+
+          const yearLabel = $("<label>").html("年份：");
+          yearContainer.append(yearLabel);
+
+          data.year
+            .sort((a, b) => b - a)
+            .forEach((year, index) => {
+              const optionLabel = $("<label>").html(year);
+              const optionCheckbox = $("<input>").attr({
+                type: "checkbox",
+                name: "year",
+                value: year,
+              });
+
+              if (index === 0) {
+                optionCheckbox.prop("checked", true);
+              }
+
+              optionLabel.prepend(optionCheckbox);
+              yearContainer.append(optionLabel);
+            });
+
+          const provinceContainer = $("#province-container");
+
+          const provinceLabel = $("<label>").html("省份：");
+          provinceContainer.append(provinceLabel);
+
+          data.province.forEach((province, index) => {
+            if (province) {
+              const optionLabel = $("<label>").html(province);
+              const optionCheckbox = $("<input>").attr({
+                type: "checkbox",
+                name: "province",
+                value: province,
+              });
+
+              if (index === 0) {
+                optionCheckbox.prop("checked", true);
+              }
+
+              optionLabel.prepend(optionCheckbox);
+              provinceContainer.append(optionLabel);
+            }
+          });
+
+          const typeContainer = $("#type-container");
+
+          const typeLabel = $("<label>").html("题型：");
+          typeContainer.append(typeLabel);
+
+          const typeMap = {
+            常识: 0,
+            言语: 1,
+            数量: 2,
+            判断: 3,
+            资料: 4,
+            其他: 100,
+          };
+          Object.keys(typeMap)
+            ?.reduce((pre, cur) => {
+              return [...pre, { label: cur, value: typeMap[cur] }];
+            }, [])
+            .forEach((fenbiType, index) => {
+              if (fenbiType) {
+                const optionLabel = $("<label>").html(fenbiType?.label);
+                const optionCheckbox = $("<input>").attr({
+                  type: "checkbox",
+                  name: "fenbiType",
+                  value: fenbiType?.value,
+                });
+
+                if (index === 0) {
+                  optionCheckbox.prop("checked", true);
+                }
+
+                optionLabel.prepend(optionCheckbox);
+                typeContainer.append(optionLabel);
+              }
+            });
+        });
+      }
+
+      getData();
+
+      function submit() {
+        $("#my-form").submit((event) => {
+          event.preventDefault();
+
+          const formData = new FormData(event.target);
+          const yearArray = [];
+          const provinceArray = [];
+          const fenbiTypeArray = [];
+
+          for (const pair of formData.entries()) {
+            const [name, value] = pair;
+
+            if (name === "year") {
+              yearArray.push(value);
+            }
+
+            if (name === "province") {
+              provinceArray.push(value);
+            }
+
+            if (name === "fenbiType") {
+              fenbiTypeArray.push(value);
+            }
+          }
+
+          const params = {
+            year: yearArray.join(","),
+            province: provinceArray.join(","),
+            fenbiType: fenbiTypeArray.join(","),
+          };
+
+          const paramsUrl = `year=${params.year}&province=${params.province}&fenbiType=${params.fenbiType}`;
+          const apiUrl = `/getData?${paramsUrl}`;
+          window.open(`${origin}${apiUrl}`);
+        });
+      }
+      submit();
+    </script>
+  </body>
+</html>
