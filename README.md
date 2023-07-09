@@ -28,4 +28,9 @@
      ],
    });
    ```
-6. npm run debug开启debug模式，也可以输出日志
+6. npm run debug
+7. ubuntu 上中文乱码：安装中文字库
+   ```js
+   sudo apt-get update
+   sudo apt-get install fonts-wqy-zenhei
+   ```

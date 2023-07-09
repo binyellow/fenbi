@@ -4,11 +4,21 @@
 
 import 'egg';
 import ExportCrawler from '../../../app/controller/crawler';
+import ExportCrawlerParse from '../../../app/controller/crawlerParse';
+import ExportData from '../../../app/controller/data';
 import ExportNews from '../../../app/controller/news';
+import ExportTimu from '../../../app/controller/timu';
+import ExportPdfIndex from '../../../app/controller/pdf/index';
 
 declare module 'egg' {
   interface IController {
     crawler: ExportCrawler;
+    crawlerParse: ExportCrawlerParse;
+    data: ExportData;
     news: ExportNews;
+    timu: ExportTimu;
+    pdf: {
+      index: ExportPdfIndex;
+    }
   }
 }
