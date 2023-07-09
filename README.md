@@ -16,4 +16,26 @@
    <!-- 然后才可以在模板中使用 -->
    {{lookup (array 'A' 'B' 'C' 'D') @index}}
    ```
-4. [JS补全https协议](https://blog.csdn.net/gao_shao_liang/article/details/40426857)
+
+4. [JS 补全 https 协议](https://blog.csdn.net/gao_shao_liang/article/details/40426857)
+5. pdf 图片不显示是代理的原因
+   ```js
+   const browser = await puppeteer.launch({
+     headless: true,
+     args: [
+       // 禁用代理服务器
+       "--proxy-server=",
+     ],
+   });
+   ```
+6. npm run debug
+7. ubuntu 上中文乱码：安装中文字库
+   ```js
+   sudo apt-get update
+   sudo apt-get install fonts-wqy-zenhei
+   ```
+8. 后台运行
+   ```js
+   nohup egg-scripts start > output.log 2>&1 </dev/null &
+   disown
+   ```

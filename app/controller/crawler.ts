@@ -2,6 +2,7 @@ import { Controller } from "egg";
 import fs from "fs";
 import path from "path";
 import { html_to_pdf } from "./pdf";
+import { fenbiTypeEnum } from "../service/data";
 
 export default class CrawlerController extends Controller {
   public async getExercises() {
@@ -20,7 +21,16 @@ export default class CrawlerController extends Controller {
     const { id, fenbiType } = ctx.query;
 
     const res = await ctx.service.crawler.getQuestionsByExercisesId(id, fenbiType);
-    return res;
+    ctx.body = res;
+  }
+
+  // 提交未完成的试卷
+  async submitExercises() {
+    const { ctx } = this;
+
+    const data = await ctx.service.crawler.getCategoryExercises();
+    const res = await ctx.service.crawler.submitExercises(data);
+    return (ctx.body = res);
   }
 
   // 获取某个省份的所有试卷
@@ -48,12 +58,16 @@ export default class CrawlerController extends Controller {
     return (ctx.body = res);
   }
 
-  async download() {
+  async download(oTimu) {
     const { ctx } = this;
 
     let res;
     let html;
-    const timu = await ctx.service.crawler.getQuestionsByExercisesId("2007718989", "2");
+    const timu =
+      oTimu || (await ctx.service.crawler.getQuestionsByExercisesId("2203045001", fenbiTypeEnum.changshi + ""));
+    // const timu = await ctx.service.crawler.getQuestionsByExercisesId("2007718989", "2");
+
+    // console.log(timu);
     try {
       const dataBinding = {
         timu,
@@ -65,7 +79,7 @@ export default class CrawlerController extends Controller {
 
       const options = {
         format: "A4",
-        headerTemplate: "<p style='height: 22px'>湖南-行测</p>",
+        headerTemplate: "<p></p>",
         footerTemplate: "<p></p>",
         displayHeaderFooter: false,
         margin: {
@@ -79,12 +93,49 @@ export default class CrawlerController extends Controller {
 
       [res, html] = await html_to_pdf({ templateHtml, dataBinding, options });
     } catch (err) {
-      this.ctx.logger.error(err);
+      this.ctx.logger.error(err, res, html);
     }
 
-    console.log("return==>", res?.length, html?.length);
-    console.log(html);
-    // ctx.type = "application/pdf";
-    ctx.body = html;
+    // console.log("return==>", res?.length, html?.length);
+    // console.log(html);
+    (global as any).ziLiaoTimus = [];
+    ctx.type = "application/pdf";
+    ctx.body = res;
+  }
+
+  // 获取没有省、年的数据
+  async getNullData() {
+    const { ctx } = this;
+
+    const res = await ctx.service.crawler.getNullData();
+
+    ctx.body = res;
+  }
+
+  // 按照省、年、体型筛选
+  async getData() {
+    const { ctx } = this;
+
+    const res = await ctx.service.crawler.getData(ctx.query);
+
+    return await this.download(res);
+  }
+
+  // 按照省、年、体型筛选
+  async getSimpleData() {
+    const { ctx } = this;
+
+    const res = await ctx.service.crawler.getData(ctx.query);
+
+    ctx.body = res;
+  }
+
+  // 返回年
+  async getYearProvinces() {
+    const { ctx } = this;
+
+    const res = await ctx.service.crawler.getYearProvinces();
+
+    ctx.body = res;
   }
 }
